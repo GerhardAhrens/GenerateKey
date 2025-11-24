@@ -44,7 +44,7 @@ qDzG-42-A1-2BLV
 
 Komplexes String Template
 ```csharp
-const string pattern = "AAAA-[x:4]-DD-WW-xxxx-dddd";
+const string pattern = "[A:4]-[x:4]-DD-WW-[x:4]-[d:5]";
 
 StringTemplate tmp = new StringTemplate(pattern);
 tmp.AddToken('D', "42");
@@ -54,7 +54,7 @@ string result = tmp.GetResult();
 
 Ergebnis:
 ```bat
-FRUR-Kpk2-42-A1-hXzb-6543
+FRUR-Kpk2-42-A1-hXzb-65437
 ```
 
 
