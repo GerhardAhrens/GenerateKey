@@ -8,7 +8,6 @@
 
     internal class StringTemplate
     {
-        private  readonly Random _rnd;
         private const string DIGITS = "0123456789";
         private const string LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
         private const string UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -22,11 +21,10 @@
 
         public StringTemplate(string template)
         {
-            this._rnd = new Random(unchecked((int)DateTime.Now.Ticks));
             this.Template = template;
         }
 
-        public string Template { get; set; }
+        public string Template { get; private set; }
 
         /// <summary>
         /// Fügt einen Token hinzu, z.B. AddToken('X', "AB")
@@ -79,6 +77,43 @@
                         int pos = _tokenPositions[tokenChar] % tokenValue.Length;
                         sb.Append(tokenValue[pos]);
                         _tokenPositions[tokenChar]++;
+                    }
+
+                    i = end; // Index weiter hinter die geschlossene Klammer setzen
+                    continue;
+                }
+
+                if (c == '[')
+                {
+                    int end = this.Template.IndexOf(']', i);
+                    if (end == -1)
+                    {
+                        throw new FormatException("Ungültiger Platzhalter: ']' fehlt.");
+                    }
+
+                    string content = this.Template.Substring(i + 1, end - i - 1);
+
+                    // Format: X:4
+                    var match = Regex.Match(content, @"^(?<token>[A-Za-z])\:(?<len>\d+)$");
+                    if (!match.Success)
+                    {
+                        throw new FormatException($"Ungültiges Token-Format: {{{content}}}");
+                    }
+
+                    char tokenChar = match.Groups["token"].Value[0];
+                    int length = int.Parse(match.Groups["len"].Value);
+
+                    for (int j = 0; j < length; j++)
+                    {
+                        // Standardplatzhalter
+                        sb.Append(tokenChar switch
+                        {
+                            'd' => CryptoRandomChar(DIGITS),
+                            'a' => CryptoRandomChar(LOWERCASE),
+                            'A' => CryptoRandomChar(UPPERCASE),
+                            'x' => CryptoRandomChar(ALPHANUMERIC),
+                            _ => c // normales Zeichen
+                        });
                     }
 
                     i = end; // Index weiter hinter die geschlossene Klammer setzen
